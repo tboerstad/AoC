@@ -20,7 +20,7 @@ def count(template, steps):
     for i in range(len(template) - 1):
         char_count += recursive_count(template[i : i + 2], steps)
 
-    char_count.subtract(Counter(template[1:-1]))
+    char_count -= Counter(template[1:-1])
     char_frequencies = sorted(char_count.values())
 
     return char_frequencies[-1] - char_frequencies[0]
