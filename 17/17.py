@@ -1,7 +1,7 @@
 from parse import search
 import numpy as np
 
-instr = open("ex.txt").read()
+instr = open("input.txt").read()
 x_min, x_max, y_min, y_max = search("x={:d}..{:d}, y={:d}..{:d}",instr)
 
 all = set()
