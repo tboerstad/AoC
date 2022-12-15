@@ -1,10 +1,8 @@
 const std = @import("std");
 const print = std.debug.print;
 
-const M = 1000;
+const M = 200;
 const N = 1000;
-
-var map: [M][N]bool = [_][N]bool{[_]bool{false} ** N} ** M;
 
 const Point = struct {
     const Self = @This();
@@ -31,12 +29,9 @@ fn printMap(m: [M][N]bool) void {
         }
     }
 }
+
 fn solve(input: []const u8) !void {
-    for (map) |*row| {
-        for (row) |*c| {
-            c.* = false;
-        }
-    }
+    var map = [_][N]bool{[_]bool{false} ** N} ** M;
     var y_max: u32 = 0;
 
     var iter = std.mem.split(u8, input, "\n");
@@ -64,7 +59,6 @@ fn solve(input: []const u8) !void {
 
     var cnt: usize = 0;
     var p1: usize = std.math.maxInt(usize);
-    var p2: usize = 0;
     outer: while (true) {
         var sand = try Point.init("500,0");
         while (true) {
@@ -77,27 +71,26 @@ fn solve(input: []const u8) !void {
                 sand.y += 1;
                 sand.x += 1;
             } else {
-                map[sand.y][sand.x] = true;
                 if (sand.y == 0) {
-                    p2 = cnt+1;
                     break :outer;
-                }
+                }                
+                map[sand.y][sand.x] = true;
+                break;
             }
 
             if (sand.y == y_max) {
                 p1 = @min(p1,cnt);
             }
-            if (sand.y > y_max+2) {
-                break;
-            }
+
         }
         cnt += 1;
     }
 
     print("\nP1: {d}\n", .{p1});
-    print("P2: {d}\n", .{p2});
+    print("P2: {d}\n", .{cnt+1});
 
 }
+
 
 test "input 1" {
     try solve(@embedFile("input.txt"));
