@@ -65,13 +65,14 @@ isSymbolAtPos mat (row, col)
 
 main :: IO ()
 main = do
-    input <- readFile "input.txt"
+    input <- readFile "ex.txt"
     let inputList = lines input
 
     let mat = fromLists $ map (concatMap (:[])) inputList
 
     let partNumbers = concat $ zipWith extractPartNumbers inputList [1..]
     let validPartNumbers = filter (`isValidPartNumber` mat) partNumbers
+    print $ sum $ map number validPartNumbers
 
     let gears = concat $ zipWith extractGearPositions inputList [1..]
     let sumGearRatioValues = sum $ map (`gearRatio` validPartNumbers) gears
