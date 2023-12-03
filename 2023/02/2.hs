@@ -1,50 +1,47 @@
-import Data.List.Split (splitOn)
 
-
-parseGame :: String -> [String]
-parseGame input = splitOn "; " (head $ tail $ splitOn ": " input)
-
-updateSet :: String -> [Int] -> [Int]
-updateSet str [a, b, c] =
-    let [numStr, color] = splitOn " " str
-        num = read numStr :: Int
-    in case color of
-        "blue" -> [max a num, b, c]
-        "red" -> [a, max b num, c]
-        "green" -> [a, b, max c num]
-
-minimalSetForSubGame :: [Int] -> String -> [Int]
-minimalSetForSubGame [a, b, c] str =
-    let cubes = splitOn ", " str
-    in foldl (flip updateSet) [a, b, c] cubes
-
-isLegalGame :: [String] -> Int
-isLegalGame = product
-            . map isLegalSubGame
-            . concatMap (splitOn ", ")
-
-isLegalSubGame :: String -> Int
-isLegalSubGame str =
-    let [numStr, color] = splitOn " " str
-        num = read numStr :: Int
-    in case color of
-        "blue" -> if num > 14 then 0 else 1
-        "red" -> if num > 12 then 0 else 1
-        "green" -> if num > 13 then 0 else 1
-
-part1 :: String -> Int
-part1 = sum
-      . zipWith (*) [1..]
-      . map (isLegalGame . parseGame)
-      . lines
-
-part2 :: String -> Int
-part2 = sum
-      . map ( (product . foldl minimalSetForSubGame [0, 0, 0]) . parseGame)
-      . lines
+{- Re-implemented from haskell discourse -}
+import Text.Parsec
+import Control.Applicative (liftA2)
 
 main :: IO ()
-main = do
-    input <- readFile "input.txt"
-    print (part1 input)
-    print (part2 input)
+main = readFile "ex.txt" >>= putStrLn . (++"\n") . show . liftA2 (,) p1 p2 . parseGames
+
+data Game = Game { gid :: Int, draw :: Draw } deriving Show
+data Draw = Draw { red :: Int, green :: Int, blue :: Int } deriving Show
+
+instance Semigroup Draw where
+  (Draw a b c) <> (Draw x y z) = Draw (max a x) (max b y) (max c z)
+
+instance Monoid Draw where
+  mempty = Draw 0 0 0
+
+possible :: Game -> Bool
+possible = valid . draw
+  where valid (Draw r g b) = r <= 12 && g <= 13 && b <= 14
+
+p1 :: [Game] -> Int
+p1 = sum . map gid . filter possible 
+
+
+power :: Draw -> Int
+power (Draw r g b) = r * g * b
+
+
+p2 :: [Game] -> Int
+p2 = sum . map (power . draw) 
+
+parseGames :: String -> [Game]
+parseGames s = case parse games "" s of
+    Left err -> error (show err)
+    Right g -> g
+  where
+    games = game `sepBy` newline
+    game = Game <$> (string "Game " *> int <* char ':') <*> draws
+    int = read <$> many1 digit
+    draws = chainl draw (char ';' >> pure (<>)) mempty
+    draw = chainl cubes (char ',' >> pure (<>)) mempty
+    cubes = between space space int >>= \i ->
+      Draw i 0 0 <$ string "red" <|>
+      Draw 0 i 0 <$ string "green" <|>
+      Draw 0 0 i <$ string "blue"
+
