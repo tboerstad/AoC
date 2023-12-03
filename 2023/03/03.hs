@@ -65,7 +65,7 @@ isSymbolAtPos mat (row, col)
 
 main :: IO ()
 main = do
-    input <- readFile "ex.txt"
+    input <- readFile "input.txt"
     let inputList = lines input
 
     let mat = fromLists $ map (concatMap (:[])) inputList

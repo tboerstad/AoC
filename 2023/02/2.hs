@@ -1,5 +1,6 @@
 import Data.List.Split (splitOn)
 
+
 parseGame :: String -> [String]
 parseGame input = splitOn "; " (head $ tail $ splitOn ": " input)
 
