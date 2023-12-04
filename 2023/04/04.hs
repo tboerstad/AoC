@@ -21,9 +21,8 @@ parseCard s = case parse card "" s of
         _ <- spaces >> char ':' >> spaces
         winning <- many1 (read <$> many1 digit <* spaces)
         _ <- spaces >> char '|' >> spaces
-        mine <- many1 (read <$> many1 digit <* spaces)   
+        mine <- many1 (read <$> many1 digit <* spaces)
         return $ Card cid (Tickets $ nub winning) (Tickets $ nub mine)
-
 
 combinedTickets :: Card -> Tickets
 combinedTickets card = winningTickets card <> myTickets card
@@ -34,8 +33,20 @@ score tickets
   | otherwise = 2 ^ (n-1)
   where n = length . numbers $ tickets
 
+part2 :: [Int] -> Card -> [Int]
+part2 scratchcards card =
+  let len = length . numbers . combinedTickets $ card
+      baseValue = scratchcards !! (cid card - 1)
+      secondaryScratchpad = [ if i >= cid card && i < cid card + len 
+                                then baseValue 
+                                else 0 
+                              | i <- [0..length scratchcards - 1] ]
+  in zipWith (+) scratchcards secondaryScratchpad
+
 main :: IO ()
 main = do
   input <- readFile "input.txt"
   let cards = map parseCard $ lines input
   print $ sum $ map (score . combinedTickets) cards
+  print $ sum $ foldl part2 (replicate (length cards) 1) cards
+  
