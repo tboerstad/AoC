@@ -41,11 +41,11 @@ passRange (rs, rl) (MapItem d s l : xs)
 passRanges :: [(Int, Int)] -> [MapItem] -> [(Int, Int)]
 passRanges ranges maps = concatMap (`passRange` maps) ranges
 
-
 main :: IO ()
 main = do
-    content <- readFile "input.txt"
+    content <- readFile "ex.txt"
     let (seeds, maps) =  parseMaps content
+    print $ minimum $ map (\seed -> foldl passSeed seed maps) seeds
     let sortedMaps = map (sortBy (\a b -> compare (src a) (src b))) maps
     let tuples = createPairs seeds
     print $ fst $ minimum $ concatMap (\seed -> foldl passRanges [seed] sortedMaps) tuples
