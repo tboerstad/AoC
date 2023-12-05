@@ -1,52 +1,22 @@
-import Text.Parsec
-import Data.List (nub)
+-- credit niccolomarcon reddit
 
-data Card = Card { cid :: Int, winningTickets :: Tickets, myTickets :: Tickets } deriving Show
-newtype Tickets = Tickets { numbers :: [Int] } deriving Show
-
-instance Semigroup Tickets where
-  (Tickets a) <> (Tickets b) = Tickets [ x | x <- a, x `elem` b ]
-
-instance Monoid Tickets where
-  mempty = Tickets []
-
-parseCard :: String -> Card
-parseCard s = case parse card "" s of
-    Left err -> error (show err)
-    Right g -> g
-  where
-    card = do
-        _ <- string "Card" <* spaces
-        cid <- read <$> many1 digit
-        _ <- spaces >> char ':' >> spaces
-        winning <- many1 (read <$> many1 digit <* spaces)
-        _ <- spaces >> char '|' >> spaces
-        mine <- many1 (read <$> many1 digit <* spaces)
-        return $ Card cid (Tickets $ nub winning) (Tickets $ nub mine)
-
-combinedTickets :: Card -> Tickets
-combinedTickets card = winningTickets card <> myTickets card
-
-score :: Tickets -> Int
-score tickets
-  | n == 0    = 0
-  | otherwise = 2 ^ (n-1)
-  where n = length . numbers $ tickets
-
-part2 :: [Int] -> Card -> [Int]
-part2 scratchcards card =
-  let len = length . numbers . combinedTickets $ card
-      baseValue = scratchcards !! (cid card - 1)
-      secondaryScratchpad = [ if i >= cid card && i < cid card + len 
-                                then baseValue 
-                                else 0 
-                              | i <- [0..length scratchcards - 1] ]
-  in zipWith (+) scratchcards secondaryScratchpad
+import Control.Arrow (second, (&&&))
+import Data.List (intersect)
+import Data.Tuple.Extra (both)
 
 main :: IO ()
 main = do
-  input <- readFile "input.txt"
-  let cards = map parseCard $ lines input
-  print $ sum $ map (score . combinedTickets) cards
-  print $ sum $ foldl part2 (replicate (length cards) 1) cards
-  
+  input <- readFile "ex.txt"
+  print $ map parse . lines $ input
+
+part1 :: [([Int], [Int])] -> Int
+part1 = sum . map ((\n -> if n >= 1 then 2 ^ (n - 1) else 0) . countMatches)
+
+part2 :: [([Int], [Int])] -> [Int]
+part2 = foldr (\c l -> 1 + sum (take (countMatches c) l) : l) []
+
+countMatches :: ([Int], [Int]) -> Int
+countMatches = length . uncurry intersect
+
+parse :: String -> ([Int], [Int])
+parse = both (map read) . second tail . span (/= "|") . drop 2 . words
