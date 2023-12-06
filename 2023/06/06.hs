@@ -11,7 +11,7 @@ computeAllSolutions 0 _ = [0]
 computeAllSolutions time speed =  time*speed : computeAllSolutions (time-1) (speed+1)
 
 part1 :: ([Int], [Int]) -> Int
-part1 (times, dists) = product $ map length $ zipWith (\time dist -> filter (>dist) (computeAllSolutions time 0)) times dists
+part1 = product . map length . uncurry (zipWith (\time dist -> filter (>dist) (computeAllSolutions time 0)))
 
 fixKerning :: [Int] -> Int
 fixKerning = read . concatMap show
