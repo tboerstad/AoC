@@ -43,7 +43,6 @@ handStrength h = case repeatedGroups of
     (3:_) -> Three
     (2:2:_)-> TwoP
     (2:_) -> OneP
-    (1:_) -> HighC
     _ -> HighC
     where repeatedGroups = reverse . sort $ map length $ group $ sort h
 
