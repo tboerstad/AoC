@@ -1,28 +1,21 @@
 
-@value
-struct Color:
-    # TODO: Convert to SIMD?
-    var red: Int
-    var green: Int
-    var blue: Int
-
-    fn setColor(inout self, colorRepr: String) raises:
-        amountAndColor = colorRepr.split(" ")
-        if amountAndColor[1] == "red":
-            self.red = int(amountAndColor[0])
-        elif amountAndColor[1] == "green":
-            self.green = int(amountAndColor[0])
-        elif amountAndColor[1] == "blue":
-            self.blue = int(amountAndColor[0])
-
-    fn __gt__(self, other: Color) -> Bool:
-        return self.red > other.red or self.green > other.green or self.blue > other.blue
+alias Color = SIMD[DType.int32, 4]
 
 fn fromString(colorString: String) raises -> Color:
-    c = Color(0,0,0)
-    for color in colorString.split(", "):
-        c.setColor(color[])
+    c = Color()
+    for substr in colorString.split(", "):
+        amountAndColor = substr[].split(" ")
+        if amountAndColor[1] == "red":
+            c[0]= int(amountAndColor[0])
+        elif amountAndColor[1] == "green":
+            c[1] = int(amountAndColor[0])
+        elif amountAndColor[1] == "blue":
+            c[2] = int(amountAndColor[0])
     return c
+
+@always_inline("nodebug")
+fn maxsimd(lhs: Color, rhs: Color) -> Color:
+    return __mlir_op.`pop.max`(lhs.value, rhs.value)
 
 fn parseGame(game: String) raises -> List[Color]:
     colors = List[Color]()
@@ -44,30 +37,28 @@ fn main() raises:
         gameString = line[].split(": ")[1]
         currGame = parseGame(gameString)
         parsedGames.append(currGame)
+
+
     
     # Part 1
     referenceColor = Color(12,13,14)
     gameId = 1
     for game in parsedGames:
-        valid = True
+        currMax = Color(0,0,0,0)
         for subGame in game[]:
-            if subGame[] > referenceColor:
-                valid = False
-        if valid:
+            currMax = maxsimd(currMax, subGame[])
+        if not (currMax > referenceColor).reduce_or():
             sum += gameId
         gameId += 1
 
     # Part 2
-    gameId = 1
     power = 0
     for game in parsedGames:
-        minColor = Color(0,0,0)
+        highestColor = Color(0,0,0,1)
         for subGame in game[]:
-            minColor.red = max(minColor.red, subGame[].red)
-            minColor.green = max(minColor.green, subGame[].green)
-            minColor.blue = max(minColor.blue, subGame[].blue)
-        power += minColor.red * minColor.green * minColor.blue
+            highestColor = maxsimd(highestColor, subGame[])
+        power += highestColor.reduce_mul().value
                 
- 
+
     print(sum)
     print(power)
