@@ -13,10 +13,6 @@ fn fromString(colorString: String) raises -> Color:
             c[2] = int(amountAndColor[0])
     return c
 
-@always_inline("nodebug")
-fn maxsimd(lhs: Color, rhs: Color) -> Color:
-    return __mlir_op.`pop.max`(lhs.value, rhs.value)
-
 fn parseGame(game: String) raises -> List[Color]:
     colors = List[Color]()
     for colorString in game.split("; "):
@@ -46,7 +42,7 @@ fn main() raises:
     for game in parsedGames:
         currMax = Color(0,0,0,0)
         for subGame in game[]:
-            currMax = maxsimd(currMax, subGame[])
+            currMax = max(currMax, subGame[])
         if not (currMax > referenceColor).reduce_or():
             sum += gameId
         gameId += 1
@@ -56,7 +52,7 @@ fn main() raises:
     for game in parsedGames:
         highestColor = Color(0,0,0,1)
         for subGame in game[]:
-            highestColor = maxsimd(highestColor, subGame[])
+            highestColor = max(highestColor, subGame[])
         power += highestColor.reduce_mul().value
                 
 
