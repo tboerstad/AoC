@@ -3,4 +3,9 @@ zig-cache
 .DS_Store/
 .vscode/
 bin/
-input.txt
+*.txt
+# pixi environments
+.pixi
+*.egg-info
+# magic environments
+.magic
